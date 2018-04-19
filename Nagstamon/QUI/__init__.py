@@ -3439,6 +3439,9 @@ class TreeView(QTreeView):
     def action_menu_custom_response(self, action):
         # avoid blocked context menu
         self.action_menu.available = True
+
+        # host or service to item
+        item = self.server.hosts[self.miserable_host] if self.miserable_service == '' else self.server.hosts[self.miserable_host].services[self.miserable_service]
         # send dict with action info and dict with host/service info
         self.request_action.emit(conf.actions[action].__dict__, {'server': self.server.get_name(),
                                                                  'host': self.miserable_host,
@@ -3451,7 +3454,11 @@ class TreeView(QTreeView):
                                                                  'password': self.server.password,
                                                                  'comment-ack': conf.defaults_acknowledge_comment,
                                                                  'comment-down': conf.defaults_downtime_comment,
-                                                                 'comment-submit': conf.defaults_submit_check_result_comment
+                                                                 'comment-submit': conf.defaults_submit_check_result_comment,
+                                                                 'status': item.status,
+                                                                 'last-check': str(item.last_check),
+                                                                 'duration': item.duration,
+                                                                 'attempt': item.attempt,
                                                                  })
 
         # if action wants a closed status window it should be closed now
@@ -4033,17 +4040,23 @@ class TreeView(QTreeView):
                     cgi_data = ''
 
                 # mapping of variables and values
-                mapping = {'$HOST$': info['host'],
-                        '$SERVICE$': info['service'],
-                        '$ADDRESS$': info['address'],
-                        '$MONITOR$': info['monitor'],
-                        '$MONITOR-CGI$': info['monitor-cgi'],
-                        '$STATUS-INFO$': info['status-info'],
-                        '$USERNAME$': info['username'],
-                        '$PASSWORD$': info['password'],
-                        '$COMMENT-ACK$': info['comment-ack'],
-                        '$COMMENT-DOWN$': info['comment-down'],
-                        '$COMMENT-SUBMIT$': info['comment-submit']}
+                mapping = {
+                  '$HOST$': info['host'],
+                  '$SERVICE$': info['service'],
+                  '$ADDRESS$': info['address'],
+                  '$MONITOR$': info['monitor'],
+                  '$MONITOR-CGI$': info['monitor-cgi'],
+                  '$STATUS-INFO$': info['status-info'],
+                  '$USERNAME$': info['username'],
+                  '$PASSWORD$': info['password'],
+                  '$COMMENT-ACK$': info['comment-ack'],
+                  '$COMMENT-DOWN$': info['comment-down'],
+                  '$COMMENT-SUBMIT$': info['comment-submit'],
+                  '$STATUS$': info['status'] if 'status' in info else "NA",
+                  '$LAST-CHECK$': info['last-check'] if 'last-check' in info else "NA",
+                  '$DURATION$': info['duration'] if 'duration' in info else "NA",
+                  '$ATTEMPT$': info['attempt'] if 'attempt' in info else "NA",
+                }
 
                 # take string form action
                 string = action['string']
